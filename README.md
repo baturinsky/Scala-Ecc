@@ -3,13 +3,15 @@
 This is a library for ECDSA signing, written completely in Scala.
 Only extra lib used is Base64 encoding, written by Robert Harder in Java.
 
-Tested to be compatible with sjclecc ECC library for javascript.
+Tested to be compatible with Stanford Javascript Crypto Library.
 
 Does NOT use native encryption Java interface, which are forbidden in some place (like Google App).
 
 Works about 30% faster than Bouncy Castle ECDSA implemention in Java.
 
 I'm not a specialist in cryptography (or Scala), so probably I messed in some places. But testing so far showed it works as it should.
+
+Feedback and forks are welcome.
 
 ```scala
 import ecc._
