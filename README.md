@@ -31,3 +31,6 @@ object Test {
 
 }
 ```
+
+###License
+BSD
