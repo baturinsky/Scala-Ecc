@@ -1,7 +1,6 @@
 #Elliptic Curve Cryptography in Scala
 
 This is a library for ECDSA signing, written completely in Scala.
-Only extra lib used is Base64 encoding, written by Robert Harder in Java.
 
 Tested to be compatible with Stanford Javascript Crypto Library.
 
@@ -32,5 +31,32 @@ object Test {
 }
 ```
 
-###License
-BSD
+## Running
+
+Clone the project then type `sbt run`
+
+## Testing
+
+`sbt test`
+
+## Coding
+
+`sbt eclipse`
+
+## marklister changes
+
+As best I can, make things more idiomatically scala.  Simplify, remove unreachable code  remove vars.
+
+
+TODO: extensive tests.
+
+## setrar changes
+
+~~Added net.iharder.base64-2.3.8 package from Maven~~ (removed by marklister)
+
+Added FreeSpec 
+
+## marklister changes
+
+Added native scala Base64 encoder/decoder (not very robust yet).  See https:github.com/marklister/base64
+
