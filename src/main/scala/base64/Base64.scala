@@ -17,6 +17,7 @@ import scala.annotation.tailrec
 
 object Base64 {
   private[this] val encodeTable: IndexedSeq[Char] = ('A' to 'Z') ++ ('a' to 'z') ++ ('0' to '9') ++ Seq('+', '/')
+  private[this] val decodeMap=collection.immutable.TreeMap(encodeTable.zipWithIndex : _*)
   private[this] val basic = Array(127, 127, 127).map(_.toByte) //to force only positive BigInts
   private[this] val zero = Array(0, 0).map(_.toByte)
 
@@ -43,7 +44,7 @@ object Base64 {
       if (!cleanS.forall(encodeTable.contains(_))) throw new java.lang.IllegalArgumentException("Invalid Base64 String:" + s)
 
       (cleanS + "A" * pad)
-        .foldLeft(BigInt(127))((a, b) => a * 64 + encodeTable.indexOf(b))
+        .foldLeft(BigInt(127))((a, b) => a * 64 + decodeMap(b))
         .toByteArray
         .drop(1).dropRight(pad)
     }
