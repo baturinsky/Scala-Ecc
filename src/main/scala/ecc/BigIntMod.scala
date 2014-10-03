@@ -22,7 +22,7 @@ class BigIntMod(bigInteger: BigInt, val mod: BigInt) extends BigInt(bigInteger.m
 
   def root: (BigIntMod, BigIntMod) = {
     assert(mod % 4 == 3)
-    val a = modPow(this, (mod + 1) / 4)
+    val a = modPow((mod + 1) / 4, mod)
     val p = (BigIntMod(a, mod), BigIntMod(mod - a, mod))
     if (a % 2 == 1)
       p
