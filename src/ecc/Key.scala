@@ -5,44 +5,45 @@ class Key(val pub: CurvePoint, sec: BigInt = null, val random: Random = new Rand
   lazy val curve = pub.curve
   lazy val n = curve.n
 
-  def randomn(r: Random): BigInt = {
-    return BigInt.apply(curve.q.bitLength + 1, r) % n
-  }
-
   def jac(P: CurvePoint) = new Jacobian(P)
 
   def sign(hash: BigInt, fast: Boolean = true, sInverted: Boolean = true): (BigInt, BigInt) = {
     assert(sec != null, "private key not set")
-    val k = BigInt.apply(n.bitLength, random) % n    
-    
-    val r = if (fast)
-      (jac(curve.P) * k).affine.x % n
-    else
-      (curve.P * k).x % n
-          
+
+    val k = BigIntMod(BigInt.apply(n.bitLength, random), n)
+
+    val r = BigIntMod(
+      if (fast)
+        (jac(curve.P) * k).affine.x
+      else
+        (curve.P * k).x, n)
+
     val s = if (sInverted)
-      (k * (hash + sec * r).modInverse(n)) % n
+      k / (r * sec + hash)
     else
-      k.modInverse(n) * (hash + sec * r) % n
+      (r * sec + hash) / k
     return (r, s)
   }
 
-  def verify(hash: BigInt, signature: (BigInt, BigInt), fast: Boolean = true, sinv: Boolean = true): Boolean = {
-    val (r, s) = signature
-    val w = if (sinv) s else s.modInverse(n)
-    val u1 = hash * w % n
-    val u2 = r * w % n
+  def verify(hash: BigInt, signature: (BigInt, BigInt), fast: Boolean = false, sInverted: Boolean = true): Boolean = {
+
+    val r = BigIntMod(signature._1, n)
+    val s = BigIntMod(signature._2, n)
+    val w = if (sInverted) s else s.inv
+    val u1 = w * hash
+    val u2 = w * r
+
     val X = if (fast)
       (jac(curve.P) * u1 + jac(pub) * u2).affine
     else
       curve.P * u1 + pub * u2
-    val v = X.x % n
-    v == r
+
+    r == X.x
   }
 
   override def toString =
-    pub.toString() + 
-    (if (sec == null) "" else "\nsec: " + sec.toString(16))
+    pub.toString() +
+      (if (sec == null) "" else "\nsec: " + sec.toString(16))
 }
 
 object Key {
@@ -52,10 +53,10 @@ object Key {
   def sec(sec: BigInt, curve: Curve) =
     new Key(curve.P * sec, sec)
 
-  def pub(G: BigInt, curve:Curve): Key = 
+  def pub(G: BigInt, curve: Curve): Key =
     new Key(curve.uncompress(G))
-  
-  def apply(pub:CurvePoint) =
+
+  def apply(pub: CurvePoint) =
     new Key(pub)
 
 }

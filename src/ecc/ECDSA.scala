@@ -6,7 +6,7 @@ object ECDSA {
 
   lazy val defaultDigest = "SHA-256"
   lazy val defaultCurve = p256
-  
+
   def hashAndLength(text: String, digest: String = defaultDigest): (BigInt, Int) = {
     val md = MessageDigest.getInstance(digest)
     md.update(text.getBytes("UTF-8"))
@@ -32,7 +32,7 @@ object ECDSA {
     val h = hash(text, digest)
     val r = signature >> key.curve.bits
     val s = signature % (BigInt(1) << key.curve.bits)
-    key.verify(h, (r, s), fast = true, sinv = true)
+    key.verify(h, (r, s))
   }
 
   lazy val p256, secp256r1 = Curve(

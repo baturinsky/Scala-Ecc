@@ -3,24 +3,29 @@ package ecc
 import scala.util.Random
 
 class BigIntMod(val n: BigInt, val mod: BigInt) {
-    
-  def inv = BigIntMod(n.modInverse(mod), mod)
 
-  def unary_- = BigIntMod(mod-n, mod)
+  import BigIntMod.trueMod
+
+  def inv = new BigIntMod(n.modInverse(mod), mod)
+
+  def unary_- = new BigIntMod(mod - n, mod)
 
   def +(arg: BigInt) = BigIntMod(n + arg, mod)
   def -(arg: BigInt) = BigIntMod(n - arg, mod)
-  def *(arg: BigInt) = BigIntMod((n * arg) % mod, mod)
+  def *(arg: BigInt) = BigIntMod(n * arg, mod)
   def /(arg: BigInt) = this * BigIntMod(arg, mod).inv
-  
+
   def +(arg: BigIntMod) = BigIntMod(n + arg.n, mod)
   def -(arg: BigIntMod) = BigIntMod(n - arg.n, mod)
-  def *(arg: BigIntMod) = BigIntMod((n * arg.n) % mod, mod)
+  def *(arg: BigIntMod) = BigIntMod(n * arg.n, mod)
   def /(arg: BigIntMod) = this * BigIntMod(arg.n, mod).inv
+
+  def ==(arg: BigInt): Boolean = trueMod(arg, mod) == n
+  def ==(arg: BigIntMod): Boolean = trueMod(arg.n, mod) == n
 
   def pow(arg: BigIntMod) = BigIntMod(n.modPow(arg.n, mod), mod)
   def pow(arg: BigInt) = BigIntMod(n.modPow(arg, mod), mod)
-  def pow(arg: Int) = BigIntMod(n.modPow(BigInt(arg), mod), mod)  
+  def pow(arg: Int) = BigIntMod(n.modPow(BigInt(arg), mod), mod)
 
   /* works only for mod%4==3 */
 
@@ -28,23 +33,25 @@ class BigIntMod(val n: BigInt, val mod: BigInt) {
     assert(mod % 4 == 3)
     val a = pow((mod + 1) / 4)
     val p = (a, -a)
-    if (a % 2 == 1)
+    if (a.testBit(0))
       p
     else
       p.swap
   }
 
-  def normalize: BigIntMod = BigIntMod(n % mod, mod)
-
-  override def toString = normalize.n.toString(16)
+  override def toString = "n: " + n.toString(16) + " mod:" + mod.toString(16)
 }
 
 object BigIntMod {
-  def apply(n: BigInt, mod: BigInt) =
-    if(n>=0)
-      new BigIntMod(n % mod, mod)
+
+  def trueMod(n: BigInt, mod: BigInt) =
+    if (n >= 0)
+      n % mod
     else
-      new BigIntMod(n % mod + mod, mod)
-  
-  implicit def toBigInt(arg:BigIntMod): BigInt = arg.n   
+      n % mod + mod
+
+  def apply(n: BigInt, mod: BigInt) =
+    new BigIntMod(trueMod(n, mod), mod)
+
+  implicit def toBigInt(arg: BigIntMod): BigInt = arg.n
 }

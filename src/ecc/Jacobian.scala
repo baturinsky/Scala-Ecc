@@ -7,7 +7,7 @@ class Jacobian(val curve: Curve, _x: BigInt, _y: BigInt, _z: Option[BigInt]) ext
   val Y = BigIntMod(_y, curve.q)
   val Z = if (_z == None) new BigIntMod(1, curve.q) else BigIntMod(_z.get, curve.q)
   val isIdentity = _y == null
-  
+
   def this(p: CurvePoint) =
     this(p.curve, p.x, p.y, None)
 
