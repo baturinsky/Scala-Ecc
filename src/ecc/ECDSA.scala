@@ -1,49 +1,12 @@
 package ecc
 
 import java.security.MessageDigest
-import base64.Base64._
 
 object ECDSA {
 
-  val defaultDigest = "SHA-256"
-  val defaultCurve = p256
-
-  def unpackPoint(G: BigInt, q: BigInt, a: BigInt, b: BigInt): (BigInt, BigInt) = {
-    val len: Int = G.bitLength >> 3 << 3
-    val g16 = G.toString(2)
-    val b1 = G.testBit(len + 1)
-    val b2 = G.testBit(len)
-    val comp = b1 || b2
-    val len2 = if (!comp) len / 2 else len
-    val cut: BigInt = 1 << len2
-    if (comp) {
-      val x = new BigIntMod(G % cut, q)
-      val root = (x.pow(3) + x * a + b).root
-      (x, if (b2) root._1 else root._2)
-    } else
-      ((G >> len2) % cut, G % cut)
-  }
-
-  def unpackPoint(G: BigInt, curve: Curve = defaultCurve): CurvePoint = {
-    val (x, y) = unpackPoint(G, curve.q, curve.a, curve.b)
-    curve.point(x, y)
-  }
-
-  def packPoint(p: CurvePoint, curve: Curve = defaultCurve): BigInt =
-    ((if (p.y % 2 == 1) BigInt(3) else BigInt(2)) << p.curve.bits) + p.x
-
-  def packPublic64(key: Key) =
-    packPoint(key.pub, key.curve).bigInteger.toByteArray.toBase64
-
-  def packPublicBytes(key: Key) =
-    packPoint(key.pub, key.curve).bigInteger.toByteArray
-
-  def unpackPublic(Gs: String, curve: Curve = defaultCurve): Key = {
-    val G = BigInt(1, Gs.toByteArray) //Base64 decode
-    val p = unpackPoint(G, curve)
-    Key((p.x, p.y), curve)
-  }
-
+  lazy val defaultDigest = "SHA-256"
+  lazy val defaultCurve = p256
+  
   def hashAndLength(text: String, digest: String = defaultDigest): (BigInt, Int) = {
     val md = MessageDigest.getInstance(digest)
     md.update(text.getBytes("UTF-8"))
@@ -54,23 +17,19 @@ object ECDSA {
   def hash(text: String, digest: String = defaultDigest): BigInt =
     hashAndLength(text, digest)._1
 
-  def hashBytes(text: String, digest: String = defaultDigest): Array[Byte] =
-    hash(text, digest).bigInteger.toByteArray
-
   /*
- *   NB: in base64 form, key format is r, concatenated with INVERSE of s, as in SJCL library. 
+ *   NB: key format is r, concatenated with INVERSE of s, as in Stanford Javascript Crypto Library. 
  *   Odd, but saves inverse operation each verify.
  */
 
-  def sign(key: Key, text: String, digest: String = defaultDigest): String = {
+  def sign(key: Key, text: String, digest: String = defaultDigest): BigInt = {
     val h = hash(text, digest)
-    val (r, s) = key.sign(h, fast = true, sinv = true)
-    ((r << key.curve.bits) + s).bigInteger.toByteArray.toBase64
+    val (r, s) = key.sign(h)
+    ((r << key.curve.bits) + s)
   }
 
-  def verify(sig: String, key: Key, text: String, digest: String = defaultDigest): Boolean = {
+  def verify(signature: BigInt, key: Key, text: String, digest: String = defaultDigest): Boolean = {
     val h = hash(text, digest)
-    val signature = BigInt(1, sig.toByteArray) //B64Decode
     val r = signature >> key.curve.bits
     val s = signature % (BigInt(1) << key.curve.bits)
     key.verify(h, (r, s), fast = true, sinv = true)
