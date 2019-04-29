@@ -1,4 +1,4 @@
-#Elliptic Curve Cryptography in Scala
+### Elliptic Curve Cryptography in Scala
 
 This is a library for ECDSA signing, written completely in Scala.
 
@@ -51,9 +51,9 @@ object TestEcc {
 }
 ```
 
-#License
+### License
 
-MIT, BSD, GPL, etc. Do with this code whatever you want
+MIT
 
-#Thanks
+### Thanks
 Thanks to [marklister] for contribution.
